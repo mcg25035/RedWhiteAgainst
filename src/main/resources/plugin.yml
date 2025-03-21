@@ -1,0 +1,4 @@
+name: RedWhiteAgainst
+version: '${project.version}'
+main: dev.mcloudtw.rwa.Main
+api-version: '1.21'
