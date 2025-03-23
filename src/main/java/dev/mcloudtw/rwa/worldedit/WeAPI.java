@@ -35,7 +35,7 @@ public class WeAPI {
             Operations.complete(forwardExtentCopy);
         } catch (Exception e) {
             Main.getInstance().getLogger().info("Couldn't copy clipboard from: '" + min + "' to: '" + max + "'.");
-            Main.logToAnyPlayer("Couldn't copy clipboard from: '" + min + "' to: '" + max + "'.");
+            Main.broadcast("Couldn't copy clipboard from: '" + min + "' to: '" + max + "'.");
             e.printStackTrace();
         }
         return clipboard;
@@ -61,7 +61,7 @@ public class WeAPI {
             Operations.complete(operation);
         } catch (Exception e) {
             Main.getInstance().getLogger().info("Couldn't place clipboard at: '" + placeLocation + "'.");
-            Main.logToAnyPlayer("Couldn't place clipboard at: '" + placeLocation + "'.");
+            Main.broadcast("Couldn't place clipboard at: '" + placeLocation + "'.");
             e.printStackTrace();
         }
     }
@@ -79,7 +79,7 @@ public class WeAPI {
             Operations.complete(operation);
         } catch (Exception e) {
             Main.getInstance().getLogger().info("Couldn't place clipboard at: '" + placeLocation + "'.");
-            Main.logToAnyPlayer("Couldn't place clipboard at: '" + placeLocation + "'.");
+            Main.broadcast("Couldn't place clipboard at: '" + placeLocation + "'.");
             e.printStackTrace();
         }
     }
@@ -93,7 +93,7 @@ public class WeAPI {
             Operations.completeBlindly(visitor);
         } catch (Exception e) {
             Main.getInstance().getLogger().info("Couldn't fill sand from: '" + min + "' to: '" + max + "'.");
-            Main.logToAnyPlayer("Couldn't fill sand from: '" + min + "' to: '" + max + "'.");
+            Main.broadcast("Couldn't fill sand from: '" + min + "' to: '" + max + "'.");
             e.printStackTrace();
         }
     }
@@ -107,7 +107,7 @@ public class WeAPI {
             Operations.completeBlindly(visitor);
         } catch (Exception e) {
             Main.getInstance().getLogger().info("Couldn't clear area from: '" + min + "' to: '" + max + "'.");
-            Main.logToAnyPlayer("Couldn't clear area from: '" + min + "' to: '" + max + "'.");
+            Main.broadcast("Couldn't clear area from: '" + min + "' to: '" + max + "'.");
             e.printStackTrace();
         }
     }

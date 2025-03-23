@@ -46,7 +46,7 @@ public class LocationFinder {
             if (!coordinates.stream().allMatch(coord -> isAcceptedLocation.apply(coord[0], coord[1]))) continue;
             Location loc = new Location(world, x, world.getHighestBlockYAt(x, z), z);
             System.out.println("地形尋找次數: " + tries);
-            Main.logToAnyPlayer("地形尋找次數: " + tries);
+            Main.broadcast("地形尋找次數: " + tries);
             return loc;
         }
         return null;

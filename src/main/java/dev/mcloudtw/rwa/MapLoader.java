@@ -9,13 +9,8 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
-
-import dev.mcloudtw.rwa.Main;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 public class MapLoader {
 
@@ -25,7 +20,7 @@ public class MapLoader {
         World world = plugin.getServer().getWorld("world");
 
         plugin.getLogger().info("正在尋找可接受地形...");
-        Main.logToAnyPlayer("正在尋找可接受地形...");
+        Main.broadcast("正在尋找可接受地形...");
 
         CompletableFuture<Void> promise = new CompletableFuture<>();
 
@@ -33,7 +28,7 @@ public class MapLoader {
                 .thenAccept(nonOceanLocation -> FaweAPI.getTaskManager().async(()->{
                     if (nonOceanLocation == null) {
                         plugin.getLogger().info("找不到非海洋地點");
-                        Main.logToAnyPlayer("找不到非海洋地點");
+                        Main.broadcast("找不到非海洋地點");
                         promise.completeExceptionally(
                                 new LocationFinderTriesOverMaxTimes("找不到非海洋地點")
                         );
@@ -41,36 +36,36 @@ public class MapLoader {
                     }
 
                     plugin.getLogger().info("找到非海洋地點: " + nonOceanLocation.getX() + ", " + nonOceanLocation.getY() + ", " + nonOceanLocation.getZ());
-                    Main.logToAnyPlayer("找到非海洋地點: " + nonOceanLocation.getX() + ", " + nonOceanLocation.getY() + ", " + nonOceanLocation.getZ());
+                    Main.broadcast("找到非海洋地點: " + nonOceanLocation.getX() + ", " + nonOceanLocation.getY() + ", " + nonOceanLocation.getZ());
 
                     Location placeLocation1 = new Location(game, -92, -63, -91);
                     Location placeLocation2 = new Location(game, 108, -63, -91);
 
                     plugin.getLogger().info("正在複製地形...");
-                    Main.logToAnyPlayer("正在複製地形...");
+                    Main.broadcast("正在複製地形...");
                     Location min = new Location(world, nonOceanLocation.getX(), -63, nonOceanLocation.getZ());
                     Location max = new Location(world, nonOceanLocation.getX() + 99, 320, nonOceanLocation.getZ() + 99);
                     Clipboard clipboard1 = WeAPI.copyClipboard(min, max, false);
                     plugin.getLogger().info("地形複製完成");
-                    Main.logToAnyPlayer("地形複製完成");
+                    Main.broadcast("地形複製完成");
                     plugin.getLogger().info("正在貼上A邊地形...");
-                    Main.logToAnyPlayer("正在貼上A邊地形...");
+                    Main.broadcast("正在貼上A邊地形...");
                     WeAPI.placeClipboard(clipboard1, placeLocation1, false, false);
                     plugin.getLogger().info("A邊地圖貼上完成");
-                    Main.logToAnyPlayer("A邊地圖貼上完成");
+                    Main.broadcast("A邊地圖貼上完成");
 
                     BlockVector3 direction = BlockVector3.UNIT_X;
                     plugin.getLogger().info("正在翻轉地形...");
-                    Main.logToAnyPlayer("正在翻轉地形...");
+                    Main.broadcast("正在翻轉地形...");
 //                        Clipboard clipboard2 = WeAPI.flipClipboard(clipboard1, direction);
 
 //                        plugin.getLogger().info("正在貼上B邊地形...");
                     WeAPI.placeFlippedClipboard(clipboard1, direction, placeLocation2, false, false);
                     plugin.getLogger().info("B邊地圖貼上完成");
-                    Main.logToAnyPlayer("B邊地圖貼上完成");
+                    Main.broadcast("B邊地圖貼上完成");
 
                     plugin.getLogger().info("地形準備完成");
-                    Main.logToAnyPlayer("地形準備完成");
+                    Main.broadcast("地形準備完成");
                     promise.complete(null);
                 }));
         return promise;
