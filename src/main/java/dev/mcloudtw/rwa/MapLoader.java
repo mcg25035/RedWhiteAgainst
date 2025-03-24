@@ -1,16 +1,22 @@
 package dev.mcloudtw.rwa;
 
+import com.bekvon.bukkit.residence.Residence;
+import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.fastasyncworldedit.core.FaweAPI;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
 import dev.mcloudtw.rwa.exception.LocationFinderTriesOverMaxTimes;
 import dev.mcloudtw.rwa.worldedit.WeAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Material;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.logging.Logger;
 
 public class MapLoader {
 
@@ -121,6 +127,10 @@ public class MapLoader {
 
             WeAPI.placeClipboard(clipboard, destLocation2, false, false);
 
+            MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(4, 0, 4), "core-base-01", false);
+            MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(4, 0, 4), "core-base-02", false);
+            MapProtector.createProtectZone(destLocation1.clone().add(2, 1, 2), destLocation1.clone().add(2, 1, 2), "core-01", false);
+            MapProtector.createProtectZone(destLocation2.clone().add(2, 1, 2), destLocation2.clone().add(2, 1, 2), "core-02", false);
             plugin.getLogger().info("Core loaded to " + destX1 + ", " + destZ1 + " and " + destX2 + ", " + destZ2);
             promise.complete(null);
         });
@@ -178,6 +188,9 @@ public class MapLoader {
 
             WeAPI.placeFlippedClipboard(clipboard, BlockVector3.UNIT_X, destLocation2, false, false);
 
+            MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(6, 5, 7), "shop-base-01", false);
+            MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(-6, 5, 7), "shop-base-02", false);
+
             plugin.getLogger().info("Shop loaded to " + destX1 + ", " + destZ1 + " and " + destX2 + ", " + destZ2);
             promise.complete(null);
         });
@@ -205,6 +218,14 @@ public class MapLoader {
             Location sourceMin = new Location(game, sourceX1, sourceY1, sourceZ1);
             Location sourceMax = new Location(game, sourceX2, sourceY2, sourceZ2);
             Location destLocation = new Location(game, destX, destY, destZ);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                System.out.println(Residence.getInstance().getResidenceManager().getResidences());
+                Residence.getInstance().getResidenceManager().getResidences().forEach( (name, residence) -> {
+                    System.out.println(name);
+                    if (!name.contains("sand-wall")) return;
+                    residence.remove();
+                });
+            });
             WeAPI.placeClipboard(WeAPI.copyClipboard(sourceMin, sourceMax, false), destLocation, false, false);
 
         });
@@ -227,6 +248,12 @@ public class MapLoader {
             int sourceZ2 = 8;
 
             WeAPI.fillSand(new Location(game, sourceX1, sourceY1, sourceZ1), new Location(game, sourceX2, sourceY2, sourceZ2));
+            Consumer<Integer> createProtectZone = (x) -> MapProtector.createProtectZone(new Location(game, x, sourceY1, sourceZ1), new Location(game, x, sourceY2, sourceZ2), "sand-wall-"+x, true);
+            for (int x = 7; x <= 9; x++) {
+                createProtectZone.accept(x);
+            }
+
+
 
         });
 

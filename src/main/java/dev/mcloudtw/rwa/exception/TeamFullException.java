@@ -1,4 +1,4 @@
-package dev.mcloudtw.rwa;
+package dev.mcloudtw.rwa.exception;
 
 public class TeamFullException extends Exception{
     public TeamFullException(String message) {

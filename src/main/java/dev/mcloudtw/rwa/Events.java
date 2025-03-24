@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -43,6 +44,17 @@ public class Events implements Listener {
                 Main.broadcast("§a黃羊已在中間生成!");
                 Main.broadcastSound(Sound.BLOCK_NOTE_BLOCK_BELL, 1, 2);
             });
+        }
+        if (type == Material.REDSTONE) {
+            MapProtector.removeAllProtectZone();
+            MapLoader.loadTerrain().thenAccept((ignored)->
+                    MapLoader.loadCore().thenAccept((ignored2)->
+                            MapLoader.loadShop().thenAccept((ignored3)->
+                                    MapLoader.loadSandWall().thenAccept((ignored4)->{
+                                    })
+                            )
+                    )
+            );
         }
 
         event.setCancelled(true);
@@ -96,6 +108,7 @@ public class Events implements Listener {
 
     @EventHandler
     public void leaveServer(PlayerQuitEvent event) {
+
         Player player = event.getPlayer();
         Team redTeam = Team.redTeam;
         Team whiteTeam = Team.whiteTeam;

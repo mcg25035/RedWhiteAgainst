@@ -115,6 +115,7 @@ public class Game {
         Team.redTeam.leaveAll();
         Team.whiteTeam.leaveAll();
 
+        MapProtector.removeAllProtectZone();
         MapLoader.loadTerrain().thenAccept((ignored)->
                 MapLoader.loadCore().thenAccept((ignored2)->
                         MapLoader.loadShop().thenAccept((ignored3)->

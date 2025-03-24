@@ -1,5 +1,6 @@
 package dev.mcloudtw.rwa;
 
+import dev.mcloudtw.rwa.exception.TeamFullException;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
