@@ -1,8 +1,7 @@
 package dev.mcloudtw.rwa;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -12,6 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.concurrent.CompletableFuture;
 
 public class Events implements Listener {
     @EventHandler
@@ -24,6 +25,25 @@ public class Events implements Listener {
         if (type == Material.EMERALD) MapLoader.loadTerrain();
         if (type == Material.GOLD_INGOT) MapLoader.loadSandWallFall();
         if (type == Material.SAND) MapLoader.loadSandWall();
+        if (type == Material.SHEEP_SPAWN_EGG) {
+            CompletableFuture.runAsync(()->{
+                World game = Bukkit.getWorld("game");
+                int sheepSpawnY = game.getHighestBlockYAt(8, -42)+1;
+                Location sheepSpawnLocation = new Location(game, 8.5, sheepSpawnY, -41.5);
+
+
+                Bukkit.getScheduler().runTask(Main.getInstance(), ()->{
+                    Sheep sheep = game.spawn(sheepSpawnLocation, Sheep.class);
+                    sheep.setColor(DyeColor.YELLOW);
+                    sheep.setInvulnerable(true);
+                    sheep.setGlowing(true);
+                });
+
+            }).thenAccept((ignored)->{
+                Main.broadcast("§a黃羊已在中間生成!");
+                Main.broadcastSound(Sound.BLOCK_NOTE_BLOCK_BELL, 1, 2);
+            });
+        }
 
         event.setCancelled(true);
     }
@@ -56,8 +76,8 @@ public class Events implements Listener {
 
     @EventHandler
     public void sheepMove(EntityMoveEvent event) {
-        if (!(event.getEntity() instanceof Sheep sheep)) return;
         if (Game.gameState != Game.GameState.STARTED) return;
+        if (!(event.getEntity() instanceof Sheep sheep)) return;
 
         int sheepY = sheep.getLocation().getBlockY();
         int coreY = Team.redTeam.coreLocation.getBlockY();
@@ -71,6 +91,7 @@ public class Events implements Listener {
         if (distanceRed < 3) Team.redTeam.isCoreDestroyed = true;
         if (distanceWhite < 3) Team.whiteTeam.isCoreDestroyed = true;
 
+        Game.sheepMoveDetect();
     }
 
     @EventHandler

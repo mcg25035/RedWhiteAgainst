@@ -1,12 +1,12 @@
 package dev.mcloudtw.rwa;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Sound;
+import org.bukkit.*;
+import org.bukkit.entity.Sheep;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class Game {
-    public static boolean isGameStarted = false;
     private static int MIN_PLAYERS_PER_TEAM = 3;
     private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 5;
     private static int countdownTime;
@@ -64,8 +64,28 @@ public class Game {
 
         if (gameTime == 60*5) {
             MapLoader.loadSandWallFall().thenAccept((ignored)->{
-                Main.broadcastSound(Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
+                Main.broadcastSound(Sound.ENTITY_GENERIC_EXPLODE, 1, 1.14514F);
                 Main.broadcast("§c沙牆已倒塌!");
+            });
+        }
+
+        if (gameTime == 60*5+30) {
+            CompletableFuture.runAsync(()->{
+                World game = Bukkit.getWorld("game");
+                int sheepSpawnY = game.getHighestBlockYAt(8, -42)+1;
+                Location sheepSpawnLocation = new Location(game, 8.5, sheepSpawnY, -41.5);
+
+
+                Bukkit.getScheduler().runTask(Main.getInstance(), ()->{
+                    Sheep sheep = game.spawn(sheepSpawnLocation, Sheep.class);
+                    sheep.setColor(DyeColor.YELLOW);
+                    sheep.setInvulnerable(true);
+                    sheep.setGlowing(true);
+                });
+
+            }).thenAccept((ignored)->{
+                Main.broadcast("§a黃羊已在中間生成!");
+                Main.broadcastSound(Sound.BLOCK_NOTE_BLOCK_BELL, 1, 2);
             });
         }
     }
