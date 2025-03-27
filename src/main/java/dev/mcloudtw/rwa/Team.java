@@ -1,12 +1,12 @@
 package dev.mcloudtw.rwa;
 
+import dev.mcloudtw.rwa.exception.AlreadyInTeamException;
 import dev.mcloudtw.rwa.exception.TeamFullException;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class Team {
     public enum TeamType {
@@ -19,6 +19,12 @@ public class Team {
         return teamType == TeamType.RED ? new Location(world, 78, coreY, -41) : new Location(world, -62, coreY, -41);
     }
 
+    public static Location getLobbyLocation(TeamType teamType) {
+        return teamType == TeamType.RED ?
+                new Location(Main.gameLobby, 8, -59, 8) :
+                new Location(Main.gameLobby, 59, -59, 8);
+    }
+
     public static Team redTeam = new Team(TeamType.RED);
     public static Team whiteTeam = new Team(TeamType.WHITE);
 
@@ -26,15 +32,46 @@ public class Team {
     private TeamType teamType;
     public boolean isCoreDestroyed = false;
     public Location coreLocation;
-    public List<UUID> players;
+    public Set<UUID> players = new HashSet<>();
 
     public Team(TeamType teamType) {
         this.teamType = teamType;
         this.coreLocation = getCoreLocation(teamType);
     }
 
-    public void join(Player player) throws TeamFullException {
+    public void reConstruct() {
+        this.coreLocation = getCoreLocation(teamType);
+        isCoreDestroyed = false;
+        players.clear();
+
+    }
+
+    public void resetPlayersItemsHealthFood() {
+        players.forEach(player -> {
+            Player p = Main.getInstance().getServer().getPlayer(player);
+            if (p == null) return;
+            p.getInventory().clear();
+            p.setHealth(20);
+            p.setFoodLevel(20);
+        });
+    }
+
+    public void teleportToCore(Player player) {
+        player.teleport(coreLocation.clone().add(0, 2, 0));
+    }
+
+    public void teleportAllToCore() {
+        players.forEach(player -> {
+            Player p = Main.getInstance().getServer().getPlayer(player);
+            if (p == null) return;
+            teleportToCore(p);
+        });
+    }
+
+    public void join(Player player) throws TeamFullException, AlreadyInTeamException {
         if (players.size() >= teamMaxPlayers) throw new TeamFullException("team is full");
+        if (redTeam.players.contains(player.getUniqueId())) throw new AlreadyInTeamException("already in team");
+        if (whiteTeam.players.contains(player.getUniqueId())) throw new AlreadyInTeamException("already in team");
         players.add(player.getUniqueId());
     }
 

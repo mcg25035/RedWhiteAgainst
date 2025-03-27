@@ -10,9 +10,13 @@ import dev.mcloudtw.rwa.worldedit.WeAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Villager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -161,6 +165,14 @@ public class MapLoader {
 
             Location sourceMin = new Location(gameResource, sourceX1, sourceY1, sourceZ1);
             Location sourceMax = new Location(gameResource, sourceX2, sourceY2, sourceZ2);
+            Map<Integer, Function<Location, Villager>> shopKeepers = Map.of(
+                    -42, ShopKeepers::baseItemsVillageer,
+                    -41, ShopKeepers::coreProtectItemsVillageer,
+                    -40, ShopKeepers::infrastructureAndToolsVillageer,
+                    -39, ShopKeepers::offensiveItemsVillageer,
+                    -38, ShopKeepers::specialOffensiveItemsVillageer,
+                    -37, ShopKeepers::tractionSheepItemsVillageer
+            );
 
             int destX1 = -90;
             int destZ1 = -44;
@@ -187,6 +199,19 @@ public class MapLoader {
             Location destLocation2 = new Location(game, destX2, highestY, destZ2);
 
             WeAPI.placeFlippedClipboard(clipboard, BlockVector3.UNIT_X, destLocation2, false, false);
+
+            List<@NotNull Double> x = List.of(103.5, -86.5);
+
+            x.forEach((x1) -> {
+                shopKeepers.forEach((z, shopKeeper) -> {
+                    Location shopKeeperLocation = new Location(game, x1, highestY+1, z-0.5);
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        shopKeeper.apply(shopKeeperLocation);
+                    });
+                });
+            });
+
+
 
             MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(6, 5, 7), "shop-base-01", false);
             MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(-6, 5, 7), "shop-base-02", false);
@@ -219,9 +244,7 @@ public class MapLoader {
             Location sourceMax = new Location(game, sourceX2, sourceY2, sourceZ2);
             Location destLocation = new Location(game, destX, destY, destZ);
             Bukkit.getScheduler().runTask(plugin, () -> {
-                System.out.println(Residence.getInstance().getResidenceManager().getResidences());
                 Residence.getInstance().getResidenceManager().getResidences().forEach( (name, residence) -> {
-                    System.out.println(name);
                     if (!name.contains("sand-wall")) return;
                     residence.remove();
                 });
@@ -253,8 +276,7 @@ public class MapLoader {
                 createProtectZone.accept(x);
             }
 
-
-
+            promise.complete(null);
         });
 
         return promise;

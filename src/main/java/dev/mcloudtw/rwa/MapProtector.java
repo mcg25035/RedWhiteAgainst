@@ -20,7 +20,8 @@ public class MapProtector {
                     "sand"
             );
 
-            if (!belongGameResidence.contains(name)) return;
+            boolean isBelongGameResidence = belongGameResidence.stream().anyMatch(name::contains);
+            if (!isBelongGameResidence) return;
 
             residence.remove();
 

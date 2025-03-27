@@ -1,19 +1,20 @@
 package dev.mcloudtw.rwa;
 
 import org.bukkit.*;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Sheep;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class Game {
-    private static int MIN_PLAYERS_PER_TEAM = 3;
-    private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 5;
+    private static int MIN_PLAYERS_PER_TEAM = 4;
+    private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 4;
     private static int countdownTime;
     private static int gameTime = 0;
     private static boolean prepareTaskStarted = false;
 
-    public static GameState gameState = GameState.WAITING;
+    public static GameState gameState = GameState.PREPARING;
 
     public static enum GameState {
         WAITING, STARTING, STARTED, ENDING, PREPARING
@@ -27,13 +28,14 @@ public class Game {
 
         if (gameState == GameState.WAITING && redTeamPlayersCount >= START_COUNTDOWN_PLAYERS_PER_TEAM && whiteTeamPlayersCount >= START_COUNTDOWN_PLAYERS_PER_TEAM) {
             gameState = GameState.STARTING;
-            countdownTime = 30;
-            Main.broadcast("§a遊戲即將開始!");
+            countdownTime = 15;
+            Main.broadcast("§a人數滿足，遊戲即將開始!");
             return;
         }
 
         if (gameState == GameState.STARTING) {
             if (redTeamPlayersCount < MIN_PLAYERS_PER_TEAM || whiteTeamPlayersCount < MIN_PLAYERS_PER_TEAM) {
+                Main.broadcast("§c人數不足，遊戲取消倒數，進入等待狀態!");
                 gameState = GameState.WAITING;
                 return;
             }
@@ -43,7 +45,11 @@ public class Game {
             countdownTime--;
             if (countdownTime <= 0) {
                 gameState = GameState.STARTED;
+                Team.redTeam.resetPlayersItemsHealthFood();
+                Team.whiteTeam.resetPlayersItemsHealthFood();
                 Main.broadcast("§6遊戲開始!");
+                Team.redTeam.teleportAllToCore();
+                Team.whiteTeam.teleportAllToCore();
             }
         }
     }
@@ -91,7 +97,12 @@ public class Game {
     }
 
     public static void sheepMoveDetect() {
+        World game = Bukkit.getWorld("game");
         if (Team.redTeam.isCoreDestroyed) {
+            game.getEntities().forEach((entity)->{
+                if (entity.getType() == EntityType.PLAYER) return;
+                entity.remove();
+            });
             Main.broadcastTitle("§f白隊§6獲勝!", "§6遊戲結束!");
             Main.broadcastSound(Sound.ENTITY_ENDER_DRAGON_AMBIENT, 1, 1);
             gameState = GameState.ENDING;
@@ -99,11 +110,29 @@ public class Game {
         }
 
         if (Team.whiteTeam.isCoreDestroyed) {
+            game.getEntities().forEach((entity)->{
+                if (entity.getType() == EntityType.PLAYER) return;
+                entity.remove();
+            });
             Main.broadcastTitle("§c紅隊§6獲勝!", "§6遊戲結束!");
             Main.broadcastSound(Sound.ENTITY_ENDER_DRAGON_AMBIENT, 1, 1);
             gameState = GameState.ENDING;
             return;
         }
+    }
+
+    public static void tickEnd() {
+        if (gameState != GameState.ENDING) return;
+
+        Team.redTeam.leaveAll();
+        Team.whiteTeam.leaveAll();
+        Bukkit.getOnlinePlayers().forEach(player -> player.teleport(Main.lobby));
+        prepareTaskStarted = false;
+
+        gameState = GameState.PREPARING;
+
+
+
     }
 
     public static void tickSecondPreparing() {
@@ -112,8 +141,18 @@ public class Game {
         if (prepareTaskStarted) return;
         prepareTaskStarted = true;
 
-        Team.redTeam.leaveAll();
-        Team.whiteTeam.leaveAll();
+        Team.redTeam.coreLocation.getChunk().setForceLoaded(true);
+        Team.whiteTeam.coreLocation.getChunk().setForceLoaded(true);
+
+        World game = Bukkit.getWorld("game");
+
+        game.setGameRule(GameRule.KEEP_INVENTORY, true);
+        game.setDifficulty(Difficulty.PEACEFUL);
+
+        Team.redTeam.coreLocation.getChunk().setForceLoaded(false);
+        Team.whiteTeam.coreLocation.getChunk().setForceLoaded(false);
+
+
 
         MapProtector.removeAllProtectZone();
         MapLoader.loadTerrain().thenAccept((ignored)->
@@ -122,6 +161,13 @@ public class Game {
                                 MapLoader.loadSandWall().thenAccept((ignored4)->{
                                     gameState = GameState.WAITING;
                                     prepareTaskStarted = false;
+                                    Team.redTeam.reConstruct();
+                                    Team.whiteTeam.reConstruct();
+                                    gameTime = 0;
+                                    Main.broadcast("§a遊戲重置完成!");
+                                    Main.broadcast("§a使用.join §cred §a加入§c紅隊");
+                                    Main.broadcast("§a使用.join §fwhite §a加入§f白隊");
+
                                 })
                         )
                 )
@@ -134,5 +180,6 @@ public class Game {
         tickSecondNonStarted();
         tickSecondStarted();
         tickSecondPreparing();
+        tickEnd();
     }
 }

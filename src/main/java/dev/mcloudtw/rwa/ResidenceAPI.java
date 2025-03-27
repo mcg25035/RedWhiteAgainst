@@ -39,7 +39,6 @@ public class ResidenceAPI {
             field.setAccessible(true);
             Map<String, CuboidArea> areas = (Map<String, CuboidArea>) field.get(newRes);
             areas.put("main", newArea);
-            System.out.println(areas.get("main"));
             rm.calculateChunks(newRes);
         }
         // #end
@@ -52,7 +51,6 @@ public class ResidenceAPI {
             Map<String, ClaimedResidence> residences = (Map<String, ClaimedResidence>) field.get(rm);
             residences.put(name.toLowerCase(), newRes);
             rm.calculateChunks(newRes);
-            System.out.println(residences.get(name.toLowerCase()));
         }
         // #end
 
