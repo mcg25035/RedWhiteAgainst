@@ -6,20 +6,17 @@ import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Sheep;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -98,6 +95,21 @@ public class Events implements Listener {
     }
 
     @EventHandler
+    public void portalCreate(PortalCreateEvent event) {
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void spawnerEvent(SpawnerSpawnEvent event) {
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void TrialSpawnerSpawnEvent(TrialSpawnerSpawnEvent event) {
+        event.setCancelled(true);
+    }
+
+    @EventHandler
     public void chat(AsyncChatEvent event) {
         PlainTextComponentSerializer serializer = PlainTextComponentSerializer.plainText();
         String message = serializer.serialize(event.message());
@@ -118,7 +130,7 @@ public class Events implements Listener {
             return;
         }
 
-        if (Game.gameState != Game.GameState.WAITING && isCommand) {
+        if (!List.of(Game.GameState.STARTING, Game.GameState.WAITING).contains(Game.gameState) && isCommand) {
             sendMsg.accept("§e[§c錯誤§e] §c遊戲正在開始或已經開始，無法使用指令");
             return;
         }
@@ -194,8 +206,10 @@ public class Events implements Listener {
         double distanceWhite = Team.whiteTeam.coreLocation.distance(sheep.getLocation());
 
 
-        if (distanceRed < 3) Team.redTeam.isCoreDestroyed = true;
-        if (distanceWhite < 3) Team.whiteTeam.isCoreDestroyed = true;
+        if (distanceRed < 2) Team.redTeam.isCoreDestroyed = true;
+        if (distanceWhite < 2) Team.whiteTeam.isCoreDestroyed = true;
+        if (distanceRed < 30) Team.redTeam.isSheepNear = true;
+        if (distanceWhite < 30) Team.whiteTeam.isSheepNear = true;
 
         Game.sheepMoveDetect();
     }
@@ -210,6 +224,19 @@ public class Events implements Listener {
 
         redTeam.leave(player);
         whiteTeam.leave(player);
+    }
+
+    @EventHandler
+    public void itemSpawn(ItemSpawnEvent event) {
+        if (event.getLocation().getWorld().getName().equals("game_lobby")) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void entityDamage(EntityDamageEvent event) {
+        if (!List.of(EntityType.SHEEP, EntityType.VILLAGER).contains(event.getEntity().getType())) return;
+        event.setCancelled(true);
     }
 
     @EventHandler
@@ -264,7 +291,7 @@ public class Events implements Listener {
         if (!playerTpTeamLobby.apply(null)) return;
 
         Consumer<Void> respawnAfter5Seconds = (ignored)-> {
-            AtomicInteger countdownTime = new AtomicInteger(5);
+            AtomicInteger countdownTime = new AtomicInteger(10);
             Bukkit.getScheduler().runTaskTimer(Main.getInstance(), (task) -> {
                 if (Game.gameState != Game.GameState.STARTED) {
                     task.cancel();

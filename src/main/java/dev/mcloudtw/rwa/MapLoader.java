@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Villager;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
@@ -131,10 +132,10 @@ public class MapLoader {
 
             WeAPI.placeClipboard(clipboard, destLocation2, false, false);
 
-            MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(4, 0, 4), "core-base-01", false);
-            MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(4, 0, 4), "core-base-02", false);
-            MapProtector.createProtectZone(destLocation1.clone().add(2, 1, 2), destLocation1.clone().add(2, 1, 2), "core-01", false);
-            MapProtector.createProtectZone(destLocation2.clone().add(2, 1, 2), destLocation2.clone().add(2, 1, 2), "core-02", false);
+            MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(4, 0, 4), "core-base-01", false, false);
+            MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(4, 0, 4), "core-base-02", false, false);
+            MapProtector.createProtectZone(destLocation1.clone().add(2, 1, 2), destLocation1.clone().add(2, 1, 2), "core-01", false, false);
+            MapProtector.createProtectZone(destLocation2.clone().add(2, 1, 2), destLocation2.clone().add(2, 1, 2), "core-02", false, false);
             plugin.getLogger().info("Core loaded to " + destX1 + ", " + destZ1 + " and " + destX2 + ", " + destZ2);
             promise.complete(null);
         });
@@ -213,8 +214,8 @@ public class MapLoader {
 
 
 
-            MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(6, 5, 7), "shop-base-01", false);
-            MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(-6, 5, 7), "shop-base-02", false);
+            MapProtector.createProtectZone(destLocation1, destLocation1.clone().add(6, 5, 7), "shop-base-01", false, true);
+            MapProtector.createProtectZone(destLocation2, destLocation2.clone().add(-6, 5, 7), "shop-base-02", false, true);
 
             plugin.getLogger().info("Shop loaded to " + destX1 + ", " + destZ1 + " and " + destX2 + ", " + destZ2);
             promise.complete(null);
@@ -250,7 +251,7 @@ public class MapLoader {
                 });
             });
             WeAPI.placeClipboard(WeAPI.copyClipboard(sourceMin, sourceMax, false), destLocation, false, false);
-
+            promise.complete(null);
         });
 
         return promise;
@@ -271,7 +272,7 @@ public class MapLoader {
             int sourceZ2 = 8;
 
             WeAPI.fillSand(new Location(game, sourceX1, sourceY1, sourceZ1), new Location(game, sourceX2, sourceY2, sourceZ2));
-            Consumer<Integer> createProtectZone = (x) -> MapProtector.createProtectZone(new Location(game, x, sourceY1, sourceZ1), new Location(game, x, sourceY2, sourceZ2), "sand-wall-"+x, true);
+            Consumer<Integer> createProtectZone = (x) -> MapProtector.createProtectZone(new Location(game, x, sourceY1, sourceZ1), new Location(game, x, sourceY2, sourceZ2), "sand-wall-"+x, true, false);
             for (int x = 7; x <= 9; x++) {
                 createProtectZone.accept(x);
             }

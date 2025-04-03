@@ -31,6 +31,7 @@ public class Team {
     private static int teamMaxPlayers = 5;
     private TeamType teamType;
     public boolean isCoreDestroyed = false;
+    public boolean isSheepNear = false;
     public Location coreLocation;
     public Set<UUID> players = new HashSet<>();
 
@@ -50,7 +51,9 @@ public class Team {
         players.forEach(player -> {
             Player p = Main.getInstance().getServer().getPlayer(player);
             if (p == null) return;
+            p.closeInventory();
             p.getInventory().clear();
+            p.setItemOnCursor(null);
             p.setHealth(20);
             p.setFoodLevel(20);
         });

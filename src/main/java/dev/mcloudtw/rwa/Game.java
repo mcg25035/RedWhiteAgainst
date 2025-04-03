@@ -2,14 +2,16 @@ package dev.mcloudtw.rwa;
 
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class Game {
-    private static int MIN_PLAYERS_PER_TEAM = 4;
-    private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 4;
+    private static int MIN_PLAYERS_PER_TEAM = 2;
+    private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 2;
     private static int countdownTime;
     private static int gameTime = 0;
     private static boolean prepareTaskStarted = false;
@@ -26,9 +28,40 @@ public class Game {
         int redTeamPlayersCount = Team.redTeam.players.size();
         int whiteTeamPlayersCount = Team.whiteTeam.players.size();
 
+        Main.broadcast("§c紅隊人數: §e"+redTeamPlayersCount+" §f白隊人數: §e"+whiteTeamPlayersCount);
+        Team.redTeam.players.removeIf((uuid)->{
+            if (Bukkit.getPlayer(uuid) == null) return true;
+            if (!Bukkit.getPlayer(uuid).isValid()) return true;
+            if (!Bukkit.getPlayer(uuid).isOnline()) return true;
+            return false;
+        });
+
+        Team.whiteTeam.players.removeIf((uuid)->{
+            if (Bukkit.getPlayer(uuid) == null) return true;
+            if (!Bukkit.getPlayer(uuid).isValid()) return true;
+            if (!Bukkit.getPlayer(uuid).isOnline()) return true;
+            return false;
+        });
+
+        String redTeamPlayers = "";
+        String whiteTeamPlayers = "";
+
+        for (UUID uuid : Team.redTeam.players) {
+            Player player = Bukkit.getPlayer(uuid);
+            redTeamPlayers += player.getName() + " ";
+        }
+
+        for (UUID uuid : Team.whiteTeam.players) {
+            Player player = Bukkit.getPlayer(uuid);
+            whiteTeamPlayers += player.getName() + " ";
+        }
+
+        Main.broadcast("§c紅隊玩家: §e"+redTeamPlayers);
+        Main.broadcast("§f白隊玩家: §e"+whiteTeamPlayers);
+
         if (gameState == GameState.WAITING && redTeamPlayersCount >= START_COUNTDOWN_PLAYERS_PER_TEAM && whiteTeamPlayersCount >= START_COUNTDOWN_PLAYERS_PER_TEAM) {
             gameState = GameState.STARTING;
-            countdownTime = 15;
+            countdownTime = 30;
             Main.broadcast("§a人數滿足，遊戲即將開始!");
             return;
         }
@@ -56,26 +89,33 @@ public class Game {
 
     public static void tickSecondStarted() {
         if (gameState != GameState.STARTED) return;
+        if (Team.redTeam.isSheepNear) Main.broadcast("§c羊正在靠近紅隊核心！");
+        if (Team.whiteTeam.isSheepNear) Main.broadcast("§f羊正在靠近白隊核心！");
+        Team.redTeam.isSheepNear = false;
+        Team.whiteTeam.isSheepNear = false;
 
         gameTime++;
 
         Main.broadcastActionBar("§a遊戲時間: §e"+gameTime+" §a秒");
 
-        if (60*4 < gameTime && gameTime < 60*5) {
+        int sandWallFallTime = 60*10;
+
+        if (sandWallFallTime-60 < gameTime && gameTime < sandWallFallTime) {
             if (List.of(0, 30, 45, 55, 56, 57, 58, 59).contains(gameTime % 60)) {
                 Main.broadcastSound(org.bukkit.Sound.BLOCK_NOTE_BLOCK_BELL, 1, 2);
-                Main.broadcast("§a沙牆將於 §e"+(60*5-gameTime)+" §a秒後倒塌!");
+                Main.broadcast("§a沙牆將於 §e"+(sandWallFallTime-gameTime)+" §a秒後倒塌!");
             }
         }
 
-        if (gameTime == 60*5) {
+        if (gameTime == sandWallFallTime) {
             MapLoader.loadSandWallFall().thenAccept((ignored)->{
-                Main.broadcastSound(Sound.ENTITY_GENERIC_EXPLODE, 1, 1.14514F);
+                Main.broadcastSound(Sound.ENTITY_GENERIC_EXPLODE, 1, 1F);
                 Main.broadcast("§c沙牆已倒塌!");
+                Main.broadcast("§e黃羊將在 §630 §e秒後生成!");
             });
         }
 
-        if (gameTime == 60*5+30) {
+        if (gameTime == sandWallFallTime+30) {
             CompletableFuture.runAsync(()->{
                 World game = Bukkit.getWorld("game");
                 int sheepSpawnY = game.getHighestBlockYAt(8, -42)+1;
@@ -147,7 +187,8 @@ public class Game {
         World game = Bukkit.getWorld("game");
 
         game.setGameRule(GameRule.KEEP_INVENTORY, true);
-        game.setDifficulty(Difficulty.PEACEFUL);
+        game.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        game.setDifficulty(Difficulty.EASY);
 
         Team.redTeam.coreLocation.getChunk().setForceLoaded(false);
         Team.whiteTeam.coreLocation.getChunk().setForceLoaded(false);

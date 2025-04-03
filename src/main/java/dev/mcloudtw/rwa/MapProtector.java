@@ -28,11 +28,12 @@ public class MapProtector {
         });
     }
 
-    public static void createProtectZone(Location min, Location max, String name, boolean disableMove) {
+    public static void createProtectZone(Location min, Location max, String name, boolean disableMove, boolean disableFireSpread) {
         Bukkit.getScheduler().runTask(Main.getInstance(), ()->{
             try{
                 ClaimedResidence res = ResidenceAPI.createSystemResidence(name, min, max);
                 if (disableMove) res.getPermissions().setFlag("move", FlagPermissions.FlagState.FALSE);
+                if (disableFireSpread) res.getPermissions().setFlag("fire", FlagPermissions.FlagState.FALSE);
             }
             catch (Exception e){
                 e.printStackTrace();
