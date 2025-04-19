@@ -216,7 +216,6 @@ public class Events implements Listener {
 
     @EventHandler
     public void leaveServer(PlayerQuitEvent event) {
-        if (Game.gameState != Game.GameState.STARTED) return;
 
         Player player = event.getPlayer();
         Team redTeam = Team.redTeam;

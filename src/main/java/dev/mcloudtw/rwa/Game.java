@@ -10,8 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class Game {
-    private static int MIN_PLAYERS_PER_TEAM = 2;
-    private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 2;
+    private static int MIN_PLAYERS_PER_TEAM = 1;
+    private static int START_COUNTDOWN_PLAYERS_PER_TEAM = 1;
     private static int countdownTime;
     private static int gameTime = 0;
     private static boolean prepareTaskStarted = false;
@@ -28,7 +28,7 @@ public class Game {
         int redTeamPlayersCount = Team.redTeam.players.size();
         int whiteTeamPlayersCount = Team.whiteTeam.players.size();
 
-        Main.broadcast("§c紅隊人數: §e"+redTeamPlayersCount+" §f白隊人數: §e"+whiteTeamPlayersCount);
+        Main.broadcastActionBar("§c紅隊 §7(§e"+redTeamPlayersCount+"§7)  |  §7(§e"+whiteTeamPlayersCount+"§7) §f白隊");
         Team.redTeam.players.removeIf((uuid)->{
             if (Bukkit.getPlayer(uuid) == null) return true;
             if (!Bukkit.getPlayer(uuid).isValid()) return true;
@@ -55,9 +55,6 @@ public class Game {
             Player player = Bukkit.getPlayer(uuid);
             whiteTeamPlayers += player.getName() + " ";
         }
-
-        Main.broadcast("§c紅隊玩家: §e"+redTeamPlayers);
-        Main.broadcast("§f白隊玩家: §e"+whiteTeamPlayers);
 
         if (gameState == GameState.WAITING && redTeamPlayersCount >= START_COUNTDOWN_PLAYERS_PER_TEAM && whiteTeamPlayersCount >= START_COUNTDOWN_PLAYERS_PER_TEAM) {
             gameState = GameState.STARTING;
@@ -177,6 +174,11 @@ public class Game {
 
     public static void tickSecondPreparing() {
         if (gameState != GameState.PREPARING) return;
+
+        int redTeamPlayersCount = Team.redTeam.players.size();
+        int whiteTeamPlayersCount = Team.whiteTeam.players.size();
+
+        Main.broadcastActionBar("§c紅隊 §7(§e"+redTeamPlayersCount+"§7)  |  §7(§e"+whiteTeamPlayersCount+"§7) §f白隊");
 
         if (prepareTaskStarted) return;
         prepareTaskStarted = true;
